@@ -1,10 +1,10 @@
 import React from 'react'
+import Form from './Form'
 
 const App = () => {
   return (
-    <div className='text-center'>
-      <h1>nine</h1>
-    </div>
+   <Form/>
+  
   )
 }
 

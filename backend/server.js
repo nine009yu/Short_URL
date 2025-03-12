@@ -15,6 +15,10 @@ app.use(express.json())
 
 // })
 
+app.get('/urls', (req, res) => {
+ const url = req.query.url
+})
+
 app.listen(port,()=>{
     console.log("listening "+port)
 })
