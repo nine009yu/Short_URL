@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'; 
 import { io } from 'socket.io-client';
 
-const socket = io(import.meta.env.VITE_BACKEND_URL); // ใช้ environment variable
+const socket = io(import.meta.env.VITE_BACKEND_URL);// ใช้ environment variable
 
 const App = () => {
   const [url, setUrl] = useState('');
