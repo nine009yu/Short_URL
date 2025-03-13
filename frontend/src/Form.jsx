@@ -1,24 +1,25 @@
-import React, { useRef, useState, useEffect } from 'react'; 
+import React, { useState, useEffect } from 'react'; 
 import { io } from 'socket.io-client';
 
-const socket = io('http://192.168.70.156:8000');
+const socket = io(import.meta.env.VITE_BACKEND_URL); // ใช้ environment variable
 
 const App = () => {
-  const form = useRef();
   const [url, setUrl] = useState('');
   const [shortUrl, setShortUrl] = useState('');
   const [qrCode, setQrCode] = useState('');
   const [history, setHistory] = useState([]);
 
+  // ดึงประวัติการคลิกจาก backend
   useEffect(() => {
     fetchHistory();
-    socket.on('updateClicks', fetchHistory);
-    return () => socket.off('updateClicks');
+    socket.on('updateClicks', fetchHistory); // ฟัง event อัปเดตคลิก
+    return () => socket.off('updateClicks'); // เคลียร์เมื่อคอมโพเนนต์ไม่ใช้งาน
   }, []);
 
+  // ฟังก์ชันสำหรับส่ง URL ไป backend และรับผลลัพธ์
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetch(`http://192.168.70.156:8000/urls?url=${url}`)
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/urls?url=${url}`) // ใช้ environment variable
       .then(res => res.json())
       .then(data => {
         setShortUrl(data.shortUrl);
@@ -27,8 +28,9 @@ const App = () => {
       });
   };
 
+  // ฟังก์ชันดึงประวัติการคลิก
   const fetchHistory = () => {
-    fetch('http://192.168.70.156:8000/history')
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/history`) // ใช้ environment variable
       .then(res => res.json())
       .then(setHistory);
   };
@@ -38,7 +40,7 @@ const App = () => {
       <div className="w-1/2 pr-8 flex flex-col space-y-6">
         <h1 className="text-4xl font-bold text-blue-700 text-center">Short URL Generator</h1>
 
-        <form ref={form} onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-lg w-full space-y-4">
+        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-lg w-full space-y-4">
           <input 
             type="url" 
             placeholder="Enter URL here..." 
