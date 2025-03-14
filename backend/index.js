@@ -7,8 +7,9 @@ const { Server } = require('socket.io');
 const validUrl = require('valid-url'); // ตรวจสอบ URL ที่รับเข้ามา
 require('dotenv').config();
 
-const port = process.env.PORT || 8000;
-const ip = process.env.SERVER_IP || 'localhost';
+const port = process.env.PORT || 8000; // พอร์ตที่ใช้จะถูกกำหนดจาก Railway
+const ip = process.env.SERVER_IP || 'localhost'; // ใช้ localhost สำหรับการทดสอบในเครื่อง
+const railwayUrl = process.env.RAILWAY_URL || 'localhost'; // ใช้ URL ที่ได้จาก Railway ถ้ารันบนคลาวด์
 
 const app = express();
 const server = http.createServer(app);
@@ -38,6 +39,7 @@ app.get('/', async (req, res) => {
   // ส่งข้อความเพื่อทดสอบว่าเซิร์ฟเวอร์ทำงานได้
   res.send('Hello, world!');
 });
+
 // 🎯 API: สร้าง Short URL และ QR Code
 app.get('/urls', async (req, res) => {
   const url = req.query.url;
@@ -49,7 +51,8 @@ app.get('/urls', async (req, res) => {
   try {
     let result = await Url.findOne({ org_url: url });
     let shortCode = result ? result.short_code : Math.random().toString(36).substring(2, 8);
-    const shortUrl = `http://${ip}:${port}/${shortCode}`;
+    // ใช้ URL ของ Railway โดยไม่ต้องใช้พอร์ต
+    const shortUrl = `https://${railwayUrl}/${shortCode}`;
 
     if (!result) {
       result = new Url({ org_url: url, short_code: shortCode });
@@ -76,7 +79,7 @@ app.get('/history', async (req, res) => {
     const results = await Url.find().sort({ clicks: -1 });
     res.json(results.length ? results.map((item) => ({
       org_url: item.org_url,
-      short_url: `http://${ip}:${port}/${item.short_code}`,
+      short_url: `https://${railwayUrl}/${item.short_code}`,
       clicks: item.clicks,
     })) : []);
   } catch (err) {
@@ -102,4 +105,4 @@ app.get('/:shortCode', async (req, res) => {
   }
 });
 
-server.listen(port, () => console.log(`🚀 Server running at http://${ip}:${port}`));
+server.listen(port, () => console.log(`🚀 Server running at https://${railwayUrl}`)); // ใช้ URL ของ Railway แทนพอร์ต
