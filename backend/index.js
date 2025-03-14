@@ -7,7 +7,7 @@ const express = require('express');
  const validUrl = require('valid-url'); // ตรวจสอบ URL ที่รับเข้ามา
  require('dotenv').config();
 
- const port = process.env.PORT || 8000;
+ const port = process.env.PORT || 8080;
  const ip = process.env.SERVER_IP || 'localhost';
  
  const app = express();
