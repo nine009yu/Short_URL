@@ -52,7 +52,7 @@ mongoose
   try {
     let result = await Url.findOne({ org_url: url });
      let shortCode = result ? result.short_code : Math.random().toString(36).substring(2, 8);
-     const shortUrl = `http://${ip}:${port}/${shortCode}`;
+     const shortUrl = `${ip}:${port}/${shortCode}`;
      if (!result) {
       result = new Url({ org_url: url, short_code: shortCode });
       await result.save();
