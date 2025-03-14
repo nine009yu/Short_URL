@@ -1,20 +1,19 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const QRCode = require('qrcode');
-const http = require('http');
-const { Server } = require('socket.io');
-const validUrl = require('valid-url');
-require('dotenv').config();
+ const mongoose = require('mongoose');
+ const cors = require('cors');
+ const QRCode = require('qrcode');
+ const http = require('http');
+ const { Server } = require('socket.io');
+ const validUrl = require('valid-url'); // ตรวจสอบ URL ที่รับเข้ามา
+ require('dotenv').config();
 
-const port = process.env.PORT || 8000;
-const ip = process.env.SERVER_IP || 'localhost';
-const railwayUrl = process.env.RAILWAY_URL || 'shorturl-production-6100.up.railway.app'; // ใช้ URL ที่ได้จาก Railway
-
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: 'https://shorturl-production-6100.up.railway.app', methods: ['GET', 'POST'], secure: true },
+ const port = process.env.PORT || 8000;
+ const ip = process.env.SERVER_IP || 'localhost';
+ 
+ const app = express();
+ const server = http.createServer(app);
+ const io = new Server(server, {
+  cors: { origin: '*', methods: ['GET', 'POST'] },
 });
 
 app.use(cors());
@@ -27,19 +26,16 @@ mongoose
   .then(() => console.log('✅ MongoDB Connected'))
   .catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
-const urlSchema = new mongoose.Schema({
-  org_url: String,
-  short_code: String,
-  clicks: { type: Number, default: 0 },
-});
-
-const Url = mongoose.model('Url', urlSchema);
-
-app.get('/', async (req, res) => {
-  res.send('Hello, world!');
-});
-
-app.get('/urls', async (req, res) => {
+  const urlSchema = new mongoose.Schema({
+    org_url: String,
+    short_code: String,
+    clicks: { type: Number, default: 0 },
+ });
+ 
+ const Url = mongoose.model('Url', urlSchema);
+ 
+ // 🎯 API: สร้าง Short URL และ QR Code
+ app.get('/urls', async (req, res) => {
   const url = req.query.url;
 
   if (!url || !validUrl.isUri(url)) {
@@ -48,10 +44,9 @@ app.get('/urls', async (req, res) => {
 
   try {
     let result = await Url.findOne({ org_url: url });
-    let shortCode = result ? result.short_code : Math.random().toString(36).substring(2, 8);
-    const shortUrl = `https://${railwayUrl}/${shortCode}`;
-
-    if (!result) {
+     let shortCode = result ? result.short_code : Math.random().toString(36).substring(2, 8);
+     const shortUrl = `http://${ip}:${port}/${shortCode}`;
+     if (!result) {
       result = new Url({ org_url: url, short_code: shortCode });
       await result.save();
     }
@@ -66,30 +61,32 @@ app.get('/urls', async (req, res) => {
     });
   } catch (err) {
     console.error('❌ Server Error:', err);
-    return res.status(500).json({ error: 'Server error' });
-  }
-});
-
-app.get('/history', async (req, res) => {
-  try {
-    const results = await Url.find().sort({ clicks: -1 });
-    res.json(results.length ? results.map((item) => ({
+     return res.status(500).json({ error: 'Server error' });
+   }
+ });
+ 
+ // 🎯 API: ดึงประวัติ URL
+ app.get('/history', async (req, res) => {
+   try {
+     const results = await Url.find().sort({ clicks: -1 });
+     res.json(results.length ? results.map((item) => ({
       org_url: item.org_url,
-      short_url: `https://${railwayUrl}/${item.short_code}`,
-      clicks: item.clicks,
-    })) : []);
-  } catch (err) {
+      short_url: `http://${ip}:${port}/${item.short_code}`,
+       clicks: item.clicks,
+     })) : []);
+   } catch (err) {
     console.error('❌ Error fetching history:', err);
-    return res.status(500).json({ error: 'Server error' });
-  }
-});
+     return res.status(500).json({ error: 'Server error' });
+   }
+ });
+ 
 
-app.get('/:shortCode', async (req, res) => {
+ // 🎯 API: Redirect และเพิ่มจำนวนคลิก
+ app.get('/:shortCode', async (req, res) => {
   const { shortCode } = req.params;
   try {
     const result = await Url.findOne({ short_code: shortCode });
     if (!result) return res.status(404).json({ error: 'URL not found' });
-
     result.clicks += 1;
     await result.save();
     io.emit('updateClicks');
@@ -99,5 +96,5 @@ app.get('/:shortCode', async (req, res) => {
     return res.status(500).json({ error: 'Server error' });
   }
 });
-
-server.listen(process.env.PORT || 8000, () => console.log(`🚀 Server running at https://${railwayUrl}`));
+server.listen(port, () => console.log(`🚀 Server running at http://${ip}:${port}`));
+ 
