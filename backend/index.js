@@ -4,17 +4,17 @@ const cors = require('cors');
 const QRCode = require('qrcode');
 const http = require('http');
 const { Server } = require('socket.io');
-const validUrl = require('valid-url'); // ตรวจสอบ URL ที่รับเข้ามา
+const validUrl = require('valid-url');
 require('dotenv').config();
 
-const port = process.env.PORT || 8000; // พอร์ตที่ใช้จะถูกกำหนดจาก Railway
-const ip = process.env.SERVER_IP || 'localhost'; // ใช้ localhost สำหรับการทดสอบในเครื่อง
-const railwayUrl = process.env.RAILWAY_URL || 'localhost'; // ใช้ URL ที่ได้จาก Railway ถ้ารันบนคลาวด์
+const port = process.env.PORT || 8000;
+const ip = process.env.SERVER_IP || 'localhost';
+const railwayUrl = process.env.RAILWAY_URL || 'shorturl-production-6100.up.railway.app'; // ใช้ URL ที่ได้จาก Railway
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: 'https://shorturl-production-6100.up.railway.app', methods: ['GET', 'POST'],secure: true, },
+  cors: { origin: 'https://shorturl-production-6100.up.railway.app', methods: ['GET', 'POST'], secure: true },
 });
 
 app.use(cors());
@@ -36,11 +36,9 @@ const urlSchema = new mongoose.Schema({
 const Url = mongoose.model('Url', urlSchema);
 
 app.get('/', async (req, res) => {
-  // ส่งข้อความเพื่อทดสอบว่าเซิร์ฟเวอร์ทำงานได้
   res.send('Hello, world!');
 });
 
-// 🎯 API: สร้าง Short URL และ QR Code
 app.get('/urls', async (req, res) => {
   const url = req.query.url;
 
@@ -51,7 +49,6 @@ app.get('/urls', async (req, res) => {
   try {
     let result = await Url.findOne({ org_url: url });
     let shortCode = result ? result.short_code : Math.random().toString(36).substring(2, 8);
-    // ใช้ URL ของ Railway โดยไม่ต้องใช้พอร์ต
     const shortUrl = `https://${railwayUrl}/${shortCode}`;
 
     if (!result) {
@@ -73,7 +70,6 @@ app.get('/urls', async (req, res) => {
   }
 });
 
-// 🎯 API: ดึงประวัติ URL
 app.get('/history', async (req, res) => {
   try {
     const results = await Url.find().sort({ clicks: -1 });
@@ -88,7 +84,6 @@ app.get('/history', async (req, res) => {
   }
 });
 
-// 🎯 API: Redirect และเพิ่มจำนวนคลิก
 app.get('/:shortCode', async (req, res) => {
   const { shortCode } = req.params;
   try {
@@ -105,4 +100,4 @@ app.get('/:shortCode', async (req, res) => {
   }
 });
 
-server.listen(port, () => console.log(`🚀 Server running at https://${railwayUrl}`)); // ใช้ URL ของ Railway แทนพอร์ต
+server.listen(process.env.PORT || 8000, () => console.log(`🚀 Server running at https://${railwayUrl}`));
