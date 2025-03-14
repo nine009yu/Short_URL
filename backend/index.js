@@ -26,6 +26,13 @@ mongoose
   .then(() => console.log('✅ MongoDB Connected'))
   .catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
+  io.on('connection', (socket) => {
+    console.log('A user connected');
+    socket.on('disconnect', () => {
+      console.log('User disconnected');
+    });
+  });
+
   const urlSchema = new mongoose.Schema({
     org_url: String,
     short_code: String,
