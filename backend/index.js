@@ -70,16 +70,21 @@ app.get('/urls', async (req, res) => {
   }
 });
 
-// ดึงประวัติการสร้าง Short URL
 app.get('/history', async (req, res) => {
   try {
     const results = await Url.find().sort({ clicks: -1 });
+
+    if (!results || results.length === 0) {
+      return res.status(404).send('No URL history found');
+    }
+
     res.json(results.map(item => ({
       org_url: item.org_url,
       short_url: `http://${ip}:8000/${item.short_code}`,
       clicks: item.clicks
     })));
   } catch (err) {
+    console.error('Error fetching history:', err);  // log error
     return res.status(500).send('Server error');
   }
 });
