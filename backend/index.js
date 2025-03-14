@@ -78,7 +78,7 @@ mongoose
      const results = await Url.find().sort({ clicks: -1 });
      res.json(results.length ? results.map((item) => ({
       org_url: item.org_url,
-      short_url: `http://${ip}/${item.short_code}`,
+      short_url: `${ip}/${item.short_code}`,
        clicks: item.clicks,
      })) : []);
    } catch (err) {
