@@ -57,39 +57,41 @@ const App = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100 p-10">
-      <div className="w-1/2 pr-8 flex flex-col space-y-6">
-        <h1 className="text-4xl font-bold text-blue-700 text-center">Short URL Generator</h1>
-        {error && <p className="text-red-500 text-center">{error}</p>}
+    <div className="flex min-h-screen bg-gray-100 justify-center items-center p-10">
+      <div className="w-full max-w-2xl p-6 bg-white rounded-lg shadow-lg">
+        <h1 className="text-4xl font-bold text-blue-700 text-center mb-6">Short URL Generator</h1>
+        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
         {/* Form สำหรับกรอก URL และปุ่มการสร้าง Short URL */}
-        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-lg w-full space-y-4">
-          <input 
-            type="url" 
-            placeholder="Enter URL here..." 
-            className="w-full p-3 border rounded-lg"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            required
-          />
-          <button className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700" disabled={loading}>
-            {loading ? 'Generating...' : 'Generate Short URL'}
-          </button>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex space-x-4">
+            <input 
+              type="url" 
+              placeholder="Enter URL here..." 
+              className="w-full p-3 border rounded-lg"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              required
+            />
+            <button 
+              className="w-32 bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700"
+              disabled={loading}
+            >
+              {loading ? 'Generating...' : 'Generate'}
+            </button>
+            <button 
+              type="button"
+              onClick={toggleHistory}
+              className="w-32 bg-green-600 text-white p-3 rounded-lg hover:bg-green-700"
+            >
+              {showHistory ? 'Hide History' : 'View History'}
+            </button>
+          </div>
         </form>
-
-        {/* ปุ่ม "View History" */}
-        <div className="text-center">
-          <button 
-            onClick={toggleHistory}
-            className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-          >
-            {showHistory ? 'Hide History' : 'View URL History'}
-          </button>
-        </div>
 
         {/* แสดงผลเมื่อได้ Short URL */}
         {shortUrl && !showHistory && (
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center space-y-4">
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center space-y-4 mt-6">
             <p className="text-lg font-semibold">Your Short URL:</p>
             <div className="flex justify-center items-center space-x-2">
               <a href={shortUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">
@@ -103,7 +105,7 @@ const App = () => {
 
         {/* แสดงประวัติ URL เมื่อกดปุ่ม "View History" */}
         {showHistory && (
-          <div className="w-full bg-white p-6 rounded-lg shadow-lg">
+          <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
             <h2 className="text-2xl font-bold mb-4 text-center">URL History</h2>
             {history.length === 0 ? (
               <p className="text-center text-gray-500">No history available</p>
