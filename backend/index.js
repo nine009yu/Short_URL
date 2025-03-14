@@ -52,7 +52,7 @@ mongoose
   try {
     let result = await Url.findOne({ org_url: url });
      let shortCode = result ? result.short_code : Math.random().toString(36).substring(2, 8);
-     const shortUrl = `${ip}:${port}/${shortCode}`;
+     const shortUrl = `${ip}/${shortCode}`;
      if (!result) {
       result = new Url({ org_url: url, short_code: shortCode });
       await result.save();
@@ -78,7 +78,7 @@ mongoose
      const results = await Url.find().sort({ clicks: -1 });
      res.json(results.length ? results.map((item) => ({
       org_url: item.org_url,
-      short_url: `http://${ip}:${port}/${item.short_code}`,
+      short_url: `http://${ip}/${item.short_code}`,
        clicks: item.clicks,
      })) : []);
    } catch (err) {
