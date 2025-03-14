@@ -34,6 +34,10 @@ const urlSchema = new mongoose.Schema({
 
 const Url = mongoose.model('Url', urlSchema);
 
+app.get('/', async (req, res) => {
+  // ส่งข้อความเพื่อทดสอบว่าเซิร์ฟเวอร์ทำงานได้
+  res.send('Hello, world!');
+});
 // 🎯 API: สร้าง Short URL และ QR Code
 app.get('/urls', async (req, res) => {
   const url = req.query.url;
