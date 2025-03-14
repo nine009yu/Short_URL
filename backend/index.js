@@ -14,7 +14,7 @@ const railwayUrl = process.env.RAILWAY_URL || 'localhost'; // ใช้ URL ท�
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: 'https://shorturl-production-6100.up.railway.app', methods: ['GET', 'POST'] },
+  cors: { origin: 'https://shorturl-production-6100.up.railway.app', methods: ['GET', 'POST'],secure: true, },
 });
 
 app.use(cors());
