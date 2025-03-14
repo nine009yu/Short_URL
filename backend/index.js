@@ -1,18 +1,18 @@
 const express = require('express');
- const mongoose = require('mongoose');
- const cors = require('cors');
- const QRCode = require('qrcode');
- const http = require('http');
- const { Server } = require('socket.io');
- const validUrl = require('valid-url'); // ตรวจสอบ URL ที่รับเข้ามา
- require('dotenv').config();
+const mongoose = require('mongoose');
+const cors = require('cors');
+const QRCode = require('qrcode');
+const http = require('http');
+const { Server } = require('socket.io');
+const validUrl = require('valid-url'); // ตรวจสอบ URL ที่รับเข้ามา
+require('dotenv').config();
 
- const port = process.env.PORT || 8080;
- const ip = process.env.SERVER_IP || 'localhost';
- 
- const app = express();
- const server = http.createServer(app);
- const io = new Server(server, {
+const port = process.env.PORT || 8080;
+const ip = process.env.SERVER_IP || 'localhost';
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
   cors: { origin: '*', methods: ['GET', 'POST'] },
 });
 
@@ -26,23 +26,23 @@ mongoose
   .then(() => console.log('✅ MongoDB Connected'))
   .catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
-  io.on('connection', (socket) => {
-    console.log('A user connected');
-    socket.on('disconnect', () => {
-      console.log('User disconnected');
-    });
+io.on('connection', (socket) => {
+  console.log('A user connected');
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
   });
+});
 
-  const urlSchema = new mongoose.Schema({
-    org_url: String,
-    short_code: String,
-    clicks: { type: Number, default: 0 },
- });
- 
- const Url = mongoose.model('Url', urlSchema);
- 
- // 🎯 API: สร้าง Short URL และ QR Code
- app.get('/urls', async (req, res) => {
+const urlSchema = new mongoose.Schema({
+  org_url: String,
+  short_code: String,
+  clicks: { type: Number, default: 0 },
+});
+
+const Url = mongoose.model('Url', urlSchema);
+
+// 🎯 API: สร้าง Short URL และ QR Code
+app.get('/urls', async (req, res) => {
   const url = req.query.url;
 
   if (!url || !validUrl.isUri(url)) {
@@ -51,9 +51,9 @@ mongoose
 
   try {
     let result = await Url.findOne({ org_url: url });
-     let shortCode = result ? result.short_code : Math.random().toString(36).substring(2, 8);
-     const shortUrl = `${ip}/${shortCode}`;
-     if (!result) {
+    let shortCode = result ? result.short_code : Math.random().toString(36).substring(2, 8);
+    const shortUrl = `${ip}/${shortCode}`;
+    if (!result) {
       result = new Url({ org_url: url, short_code: shortCode });
       await result.save();
     }
@@ -68,28 +68,27 @@ mongoose
     });
   } catch (err) {
     console.error('❌ Server Error:', err);
-     return res.status(500).json({ error: 'Server error' });
-   }
- });
- 
- // 🎯 API: ดึงประวัติ URL
- app.get('/history', async (req, res) => {
-   try {
-     const results = await Url.find().sort({ clicks: -1 });
-     res.json(results.length ? results.map((item) => ({
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// 🎯 API: ดึงประวัติ URL
+app.get('/history', async (req, res) => {
+  try {
+    const results = await Url.find().sort({ clicks: -1 });
+    res.json(results.length ? results.map((item) => ({
       org_url: item.org_url,
       short_url: `${ip}/${item.short_code}`,
-       clicks: item.clicks,
-     })) : []);
-   } catch (err) {
+      clicks: item.clicks,
+    })) : []);
+  } catch (err) {
     console.error('❌ Error fetching history:', err);
-     return res.status(500).json({ error: 'Server error' });
-   }
- });
- 
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
 
- // 🎯 API: Redirect และเพิ่มจำนวนคลิก
- app.get('/:shortCode', async (req, res) => {
+// 🎯 API: Redirect และเพิ่มจำนวนคลิก
+app.get('/:shortCode', async (req, res) => {
   const { shortCode } = req.params;
   try {
     const result = await Url.findOne({ short_code: shortCode });
@@ -103,5 +102,5 @@ mongoose
     return res.status(500).json({ error: 'Server error' });
   }
 });
+
 server.listen(port, () => console.log(`🚀 Server running at http://${ip}:${port}`));
- 
