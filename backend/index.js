@@ -4,7 +4,7 @@ const cors = require('cors');
 const QRCode = require('qrcode');
 const http = require('http');
 const { Server } = require('socket.io');
-const validUrl = require('valid-url'); // ตรวจสอบ URL ที่รับเข้ามา
+const validUrl = require('valid-url');
 require('dotenv').config();
 
 const port = process.env.PORT || 8080;
@@ -23,8 +23,8 @@ console.log('MongoDB URI:', process.env.MONGODB_URI);
 
 mongoose
   .connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ MongoDB Connected'))
-  .catch((err) => console.error('❌ MongoDB Connection Error:', err));
+  .then(() => console.log('MongoDB Connected'))
+  .catch((err) => console.error('MongoDB Connection Error:', err));
 
 io.on('connection', (socket) => {
   console.log('A user connected');
@@ -41,7 +41,6 @@ const urlSchema = new mongoose.Schema({
 
 const Url = mongoose.model('Url', urlSchema);
 
-// 🎯 API: สร้าง Short URL และ QR Code
 app.get('/urls', async (req, res) => {
   const url = req.query.url;
 
@@ -60,19 +59,18 @@ app.get('/urls', async (req, res) => {
 
     QRCode.toDataURL(shortUrl, (err, qrCode) => {
       if (err) {
-        console.error('❌ QR Code Generation Error:', err);
+        console.error('QR Code Generation Error:', err);
         return res.status(500).json({ error: 'QR generation error' });
       }
       res.json({ shortUrl, qrCode });
       io.emit('updateClicks');
     });
   } catch (err) {
-    console.error('❌ Server Error:', err);
+    console.error('Server Error:', err);
     return res.status(500).json({ error: 'Server error' });
   }
 });
 
-// 🎯 API: ดึงประวัติ URL
 app.get('/history', async (req, res) => {
   try {
     const results = await Url.find().sort({ clicks: -1 });
@@ -82,12 +80,11 @@ app.get('/history', async (req, res) => {
       clicks: item.clicks,
     })) : []);
   } catch (err) {
-    console.error('❌ Error fetching history:', err);
+    console.error('Error fetching history:', err);
     return res.status(500).json({ error: 'Server error' });
   }
 });
 
-// 🎯 API: Redirect และเพิ่มจำนวนคลิก
 app.get('/:shortCode', async (req, res) => {
   const { shortCode } = req.params;
   try {
@@ -98,9 +95,9 @@ app.get('/:shortCode', async (req, res) => {
     io.emit('updateClicks');
     res.redirect(result.org_url);
   } catch (err) {
-    console.error('❌ Redirect Error:', err);
+    console.error('Redirect Error:', err);
     return res.status(500).json({ error: 'Server error' });
   }
 });
 
-server.listen(port, () => console.log(`🚀 Server running at http://${ip}:${port}`));
+server.listen(port, () => console.log(`Server running at http://${ip}:${port}`));
